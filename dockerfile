@@ -3,7 +3,9 @@ RUN mkdir /app
 WORKDIR /app
 ADD . /app/
 
-RUN rm -f ./node_modules
+RUN rm -rf ./node_modules
+RUN rm -rf ./build
+RUN rm -rf .docusaurus 
 
 RUN npm ci
 
