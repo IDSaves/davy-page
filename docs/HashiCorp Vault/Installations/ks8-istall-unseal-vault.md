@@ -14,10 +14,10 @@ id: ks8-istall-unseal-vault
 
 :::tip Сделать это можно двум способами:
 1. Вручную (не рекомендуется)
-	- [Создание CA сертификатов](../TLS/CA-certs)
-	- [Создание самоподписанных сертификатов](../TLS/self-signed-certs)
+	- [Создание CA сертификатов](../../TLS/CA-certs)
+	- [Создание самоподписанных сертификатов](../../TLS/self-signed-certs)
 2. С помощью Cert-Manager'а 
-	- [Установка и использование Cert-Manager в K8S](../Kubernetes/k8s-install-and-use-certmanager) (нам нужен вариант с собственным CA)
+	- [Установка и использование Cert-Manager в K8S](../../Kubernetes/k8s-install-and-use-certmanager) (нам нужен вариант с собственным CA)
 :::
 ### 2. Добавление репозитория в Helm
 
@@ -27,7 +27,7 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 
 :::warning
 Если вы из России, то работать эта ссылка без VPN у вас не будет.
-Поэтому либо ставьте VPN, либо настраивайте свой прокси сервер, как я показываю в этой статье [Обход блокировки HashiCorp в helm](./helm-ru-block-evasion.md).
+Поэтому либо ставьте VPN, либо настраивайте свой прокси сервер, как я показываю в этой статье [Обход блокировки HashiCorp в helm](../helm-ru-block-evasion).
 
 :::note Если ничего из вышеперечисленного делать пока не хочется – вы можете использовать мой прокси  http://hashicorp.proxy.davy.page
 :::
@@ -36,7 +36,7 @@ helm repo add hashicorp https://helm.releases.hashicorp.com
 
 :::tip Пример
 
-![helm-search-repo](./img/helm-search-repo.png)
+![helm-search-repo](../img/helm-search-repo.png)
 
 ### 3. Создание namespace
 

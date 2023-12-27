@@ -1,0 +1,8 @@
+{
+  "label": "Установки",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Как устанавливать HashiCorp Vault"
+  }
+}

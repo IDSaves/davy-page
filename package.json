@@ -1,6 +1,6 @@
 {
   "name": "davy-main",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
@@ -20,6 +20,7 @@
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
+    "prismjs": "^1.29.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },

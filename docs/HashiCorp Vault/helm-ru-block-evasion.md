@@ -10,7 +10,7 @@ HashiCorp заблокировали доступ для своих ресурс
 server {
   listen 80 default_server;
   listen [::]:80 default_server;
-  server_name hashicorp.proxy.davy.page;
+  server_name <ВАШ ДОМЕН>;
 
   location / {
     proxy_pass https://helm.releases.hashicorp.com;
@@ -21,11 +21,15 @@ server {
 
 Далее по указанному `server_name` можно спокойно отправлять запросы с российских серверов и попадать в hashicorp.
 
+:::tip
+Подобным способом через nginx можно соорудить прокси на любой нужный вам сервис.
+:::
+
 #### Способ применения
 
 Добавляем репозиторий hashicorp
 ```sh
-helm repo add hashicorp https://hashicorp.proxy.davy.page
+helm repo add hashicorp https://<ВАШ ДОМЕН>
 ```
 
 Смотрим список всех чартов
@@ -43,7 +47,7 @@ Error: failed to fetch https://helm.releases.hashicorp.com/vault-0.27.0.tgz : 40
 
 В команде установки заменяем название чарта на ссылку, в которую он стучится, и дополнительно меняем хост в этой ссылке на наше прокси
 ```sh
-helm install vault http://hashicorp.proxy.davy.page/vault-0.27.0.tgz --values values-file.yaml -n vault
+helm install vault http://<ВАШ ДОМЕН>/vault-0.27.0.tgz --values values-file.yaml -n vault
 ```
 
 :::tip
