@@ -5,7 +5,7 @@ id: ks8-istall-vault
 
 :::danger Необходимые компоненты:
 - Cert-Manager для создания и управления сертификатами.
-	- [[Установка и использование Cert-Manager в K8S]]
+	- [Установка и использование Cert-Manager в K8S](../Kubernetes/k8s-install-and-use-certmanager)
 - Ingress-Nginx для управления попадающим в кластер трафиком.
 	- https://kubernetes.github.io/ingress-nginx/deploy
 :::
@@ -16,8 +16,8 @@ id: ks8-istall-vault
 ![Diagram.png](./img/Diagram.png)
 ___
 ## Туториалы как настроить распечатывающий vault:
-- Для docker (для машин с очень маленькими ресурсами) – [[(Docker) Установка распечатывающего (unseal) Vault]]
-- Для k8s (стандартное решение) – [[(K8S) Установка распечатывающего (unseal) Vault]]
+- Для docker (для машин с очень маленькими ресурсами) – [(Docker) Установка распечатывающего (unseal) Vault](./docker-istall-unseal-vault)
+- Для k8s (стандартное решение) – [(K8S) Установка распечатывающего (unseal) Vault](./ks8-istall-unseal-vault)
 :::
 
 :::warning Vault будет использовать встроенное файловое хранилище, которое будет находиться на одной из нод кластера K8S.

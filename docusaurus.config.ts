@@ -28,7 +28,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl:
-            'https://github.com/IDSaves/davy-page/',
+            'https://github.com/IDSaves/davy-page/blob/main/',
         },
 
         theme: {
@@ -39,7 +39,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/social-card.png',
     navbar: {
       title: 'Д. И. А.',
       logo: {
@@ -77,7 +77,7 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/IDSaves',
             },
           ],
         },

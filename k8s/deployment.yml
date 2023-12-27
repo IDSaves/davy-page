@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: davy-page-deployment
+  namespace: davy
+spec:
+  selector:
+    matchLabels:
+      app: davy-page-deployment
+  template:
+    metadata:
+      labels:
+        app: davy-page-deployment
+    spec:
+      containers:
+      - name: davy-page
+        image: cr.selcloud.ru/davy/davy-page:v0.0.11
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: vault-registry-secret

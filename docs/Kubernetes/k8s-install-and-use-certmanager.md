@@ -49,20 +49,20 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-	name: vault-ca
-	namespace: vault
+  name: vault-ca
+  namespace: vault
 data:
-	tls.crt: LS0tLS1CRUdJTiBDRVJ...
-	tls.key: LS0tLS1CRUdJTiBSU0EgUF...
+  tls.crt: LS0tLS1CRUdJTiBDRVJ...
+  tls.key: LS0tLS1CRUdJTiBSU0EgUF...
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-	name: vault-ca
-	namespace: vault
+  name: vault-ca
+  namespace: vault
 spec:
-	ca:
-		secretName: vault-ca
+  ca:
+    secretName: vault-ca
 ```
 
 ### 3. Создание и получение сертификата
@@ -114,27 +114,27 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-	name: service-cert
-	namespace: service
+  name: service-cert
+  namespace: service
 spec:
-	secretName: service-tls
-	duration: 2160h # 90d
-	renewBefore: 360h # 15d
-	commonName: service
-	isCA: false
-	privateKey:
-		algorithm: RSA
-		encoding: PKCS1
-		size: 2048
-	usages:
-		- server auth
-		- client auth
-	dnsNames:
-		- service.service
-	ipAddresses:
-		- 127.0.0.1
-	issuerRef:
-		name: custom-ca
-		kind: Issuer
+  secretName: service-tls
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  commonName: service
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - service.service
+  ipAddresses:
+    - 127.0.0.1
+  issuerRef:
+    name: custom-ca
+    kind: Issuer
 ```
 :::

@@ -33,11 +33,11 @@ keyUsage = keyCertSign
 Команда: 
 ```sh
 openssl x509 -req \
-	-in ca.csr \ 
-	-signkey ca.key \
-	-out ca.crt \
-	-days "500" \
-	-extfile v3-ext.cnf # созданный ранеее файл
+  -in ca.csr \ 
+  -signkey ca.key \
+  -out ca.crt \
+  -days "500" \
+  -extfile v3-ext.cnf # созданный ранеее файл
 ```
 
 Получаем самоподписанный сертификат или **public key**.
