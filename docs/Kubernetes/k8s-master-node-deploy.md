@@ -1,7 +1,7 @@
 ---
 id: k8s-master-node-deploy
 title: ⚡️ Развёртывание мастер ноды
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 ### 1. Перед началом прописать это:
@@ -65,13 +65,9 @@ ___
 ___
 ### 9. Устанавливаем MetalLB (LoadBalancer)
 
-:::info Как это сделать – [Установка и настройка балансера MetalLB](../Kubernetes/k8s-install-and-configure-metallb)
+:::info Как это сделать – [Установка и настройка балансера MetalLB](/docs/Kubernetes/Installations/k8s-install-and-configure-metallb)
 :::
 ### 11. Устанавливаем ingress-nginx controller
 
 :::info Как это сделать – https://kubernetes.github.io/ingress-nginx/deploy
-:::
-### 12. Устанавливаем Cert-Manager и создаём нужные Issuer'ы
-
-:::info Как это сделать – [Установка и использование Cert-Manager в K8S](../Kubernetes/k8s-install-and-use-certmanager)
 :::

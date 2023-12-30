@@ -40,7 +40,13 @@ const config: Config = {
 
   themeConfig: {
     image: 'img/social-card.png',
+    docs: {
+      sidebar: {
+        'autoCollapseCategories': true
+      },
+    },
     navbar: {
+      hideOnScroll: true,
       title: 'Д. И. А.',
       logo: {
         alt: 'Logo',
