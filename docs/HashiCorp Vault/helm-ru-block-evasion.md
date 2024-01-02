@@ -1,5 +1,5 @@
 ---
-title: Обход блокировки HashiCorp в РФ для helm
+title: Обход блокировки HashiCorp в РФ (пример для helm)
 id: helm-ru-block-evasion
 ---
 

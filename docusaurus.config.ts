@@ -31,6 +31,14 @@ const config: Config = {
             'https://github.com/IDSaves/davy-page/blob/main/',
         },
 
+        blog: {
+          blogTitle: 'Блог',
+          blogDescription: "Блог о Web'е",
+          postsPerPage: 'ALL',
+          blogSidebarTitle: 'Статьи',
+          blogSidebarCount: 'ALL',
+        },
+
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -47,7 +55,7 @@ const config: Config = {
     },
     navbar: {
       hideOnScroll: true,
-      title: 'Д. И. А.',
+      title: 'Davy',
       logo: {
         alt: 'Logo',
         src: 'img/logo.svg',
@@ -60,6 +68,7 @@ const config: Config = {
           position: 'left',
           label: 'Записи',
         },
+        {to: 'blog', label: 'Блог', position: 'left'},
         {
           href: 'https://github.com/IDSaves/davy-page',
           label: 'GitHub',
@@ -101,7 +110,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.oneLight,
       darkTheme: prismThemes.oneDark,
-      additionalLanguages: ["HCL", "JSON", "Bash", "nginx"]
+      additionalLanguages: ["HCL", "JSON", "Bash", "nginx", "rust"]
     },
   } satisfies Preset.ThemeConfig,
 };

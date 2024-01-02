@@ -9,6 +9,33 @@
   position: relative;
   overflow: hidden;
   flex: 1;
+  background: url(../../static/img/background-light.png);
+}
+
+html[data-theme='dark'] .heroBanner {
+  background: url(../../static/img/background-dark.png);
+}
+
+.container {
+  margin: 0 auto;
+}
+
+.heading {
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.heading h1 {
+  margin-bottom: 0;
+}
+
+.heading h5 {
+  width: fit-content;
+  margin-left: auto;
+  color: var(--ifm-color-primary);
 }
 
 @media screen and (max-width: 996px) {

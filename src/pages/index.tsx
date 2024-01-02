@@ -9,10 +9,15 @@ import styles from './index.module.css';
 function HomepageHeader() {
   return (
     <header className={clsx('hero', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1">
-          Полезные записи Ивана Давыдова
-        </Heading>
+      <div className={styles.container}>
+        <div className={styles.heading}>
+          <Heading as="h1">
+            Полезные записи о DevOps (и не только)
+          </Heading>
+          <Heading as="h5">
+            автор Иван Давыдов
+          </Heading>
+        </div>
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
