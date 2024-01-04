@@ -1,5 +1,5 @@
 ---
-title: Автоматизация создания и удаления пользователя
+title: Автоматизация создания и удаления пользователей
 id: auto-create-delete-user
 ---
 
@@ -45,19 +45,25 @@ id: auto-create-delete-user
       changed_when: useradd_result.rc == 0
     # Создаём папку в которой будет лежать файл с 
     # доверенными публичными ключами для подключения по ssh
-    - name: "Creating .ssh dir"
-      ansible.builtin.command: "mkdir /home/{{ username }}/.ssh"
-      register: create_ssh_dir_result
-      # Проверяем return code результата. (0 значит успешно)
-      changed_when: create_ssh_dir_result.rc == 0
+    - name: Creating .ssh dir
+      ansible.builtin.file:
+        path: '/home/{{ username }}/.ssh'
+        state: directory
+        owner: '{{ username }}'
+        group: '{{ group if group else username }}'
+        # даём владельцу правка на чтение, запись, 
+        # выполнение и у всех остальных забираем
+        mode: '700'
     # Добавляем наш ключ пользователя в файл ~/.ssh/authorized_keys
-    - name: "Inser ssh cert"
-      ansible.builtin.shell:
-        cmd: "echo \"{{ user_ssh_public_key }}\" > /home/{{ username }}/.ssh/authorized_keys"
-        executable: /bin/bash
-      register: copy_ssh_result
-      # Проверяем return code результата. (0 значит успешно)
-      changed_when: copy_ssh_result.rc == 0
+    - name: "Insert ssh cert"
+      ansible.builtin.copy:
+        dest: '/home/{{ username }}/.ssh/authorized_keys'
+        content: '{{ user_ssh_public_key }}'
+        # даём владельцу права на чтение и запись,
+        # всем остальным только на чтение
+        mode: '644'
+        owner: '{{ username }}'
+        group: '{{ group if group else username }}'
 ```
 
 ## Удаление

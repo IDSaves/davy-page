@@ -110,7 +110,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.oneLight,
       darkTheme: prismThemes.oneDark,
-      additionalLanguages: ["HCL", "JSON", "Bash", "nginx", "rust"]
+      additionalLanguages: ["HCL", "JSON", "Bash", "nginx", "rust", "toml"]
     },
   } satisfies Preset.ThemeConfig,
 };
