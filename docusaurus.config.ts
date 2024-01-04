@@ -55,7 +55,7 @@ const config: Config = {
     },
     navbar: {
       hideOnScroll: true,
-      title: 'Davy',
+      title: 'Д.И.А.',
       logo: {
         alt: 'Logo',
         src: 'img/logo.svg',

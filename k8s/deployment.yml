@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: davy-page
-        image: cr.selcloud.ru/davy/davy-page:v0.0.22
+        image: cr.selcloud.ru/davy/davy-page:v0.0.24
         imagePullPolicy: Always
         resources:
           requests:
@@ -23,5 +23,12 @@ spec:
           limits:
             memory: "340Mi"
             cpu: "100m"
+        readinessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /img/logo.svg
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
       imagePullSecrets:
       - name: vault-registry-secret

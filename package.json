@@ -1,6 +1,6 @@
 {
   "name": "davy-main",
-  "version": "0.0.22",
+  "version": "0.0.24",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
