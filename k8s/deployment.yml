@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: davy-page
-        image: cr.selcloud.ru/davy/davy-page:v0.0.27
+        image: cr.selcloud.ru/davy/davy-page:v0.0.29
         imagePullPolicy: Always
         resources:
           requests:

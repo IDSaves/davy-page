@@ -1,0 +1,319 @@
+---
+title: Одноразовые пароли доступа по ssh через HashiCorp Vault
+tags:
+  - vault
+  - ssh
+  - туториал
+date: 2024-01-06
+authors:
+  - me
+---
+
+HashiCorp Vault имеет в своём арсенале SSH secrets engine, который позволяет организовать 
+централизованный и защищённый доступ к вашим машинам по ssh, через создание клиентских 
+сертификатов и одноразовых паролей. Про последнее – создание одноразовых паролей 
+(OTP) – мы и поговорим в этой статье.
+
+{/* truncate */}
+
+## Как это работает? 
+
+![Схема работы](./img/vault-otp-scheme.avif)
+
+Клиент генерирует OTP для нужного пользователя и ip-адреса, далее обычным `ssh username@host` 
+подключается к серверу. Сгенерировать ключ можно напрямую через vault, используя cli, API или 
+веб-интерфейс, или через вашу внутреннюю систему, которая сама будет дёргать vault API и создавать 
+OTP.
+
+Когда SSH-сервер получает запрос на аутентификацию, он вызывает PAM (Pluggable Authentication Modules) 
+модуль, который в процессе выполняет внешнюю команду. Этой внешней командой является 
+[vault-ssh-helper](https://github.com/hashicorp/vault-ssh-helper), который, в свою очередь, 
+стучится в ваш Vault-кластер для проверки токена, отправленного клиентом. Если всё ок, то 
+доступ предоставляется, а токен инвалидируется. 
+
+<details>
+<summary>
+Настройка
+</summary>
+
+
+Вся настройка достаточно быстрая и состоит из двух этапов: необходимые 
+манипуляции внутри кластера Vault и на самом host'е.
+
+:::note
+Как всё настроить подробно описано в 
+[официальной статье от HashiCorp](https://developer.hashicorp.com/vault/tutorials/secrets-management/ssh-otp). 
+Инструкция ниже это по сути её перевод. Вы можете это пропустить и перейти сразу к нюансам.
+:::
+
+#### Манипуляции внутри Vault'а
+
+Включаем SSH secrets engine.
+
+```sh
+vault secrets enable ssh
+```
+
+Создаём роль, которая будет использована для генерации OTP ключей для клиентов. 
+Указываем дефолтного юзера и список разрешённых. А также в `cidr_list` задаём список 
+адресов, к которым будут подходить ключи.
+
+:::warning 
+Рекомендуется создавать по одной роли для каждого пользователя. 
+:::
+
+```sh
+vault write ssh/roles/otp_role \
+    key_type=otp \
+    default_user=worker \
+    allowed_users=worker, worker2 \
+    cidr_list=10.10.10.10/32
+```
+
+Далее осталось создать policy к нашей роли для генерации ключей и сгенерировать access-token, привязанный к этой policy.
+
+```sh
+tee test.hcl <<EOF
+path "ssh/creds/otp_role" {
+  capabilities = ["update"]
+}
+EOF
+```
+
+```sh
+vault policy write otp-polcy ./test.hcl
+```
+
+Создаём token и сохраняем его, потому что запросить его у vault не удастся.
+
+```sh
+vault token create -policy=otp-polcy
+
+Key                  Value
+---                  -----
+token                hvs.CAESIG1_CrngaECzf6yvTDBgUZz2Lt-mYfdZXogrsiV0ulH1Gh4KHGh2cy4bPmFmN24xNVM5cnBqbFNLTUdpd1JDcTM
+token_accessor       n76E8Bc8P9SyPLpVZa2EoWGq
+token_duration       768h
+token_renewable      true
+token_policies       ["default" "otp-polcy"]
+identity_policies    []
+policies             ["default" "otp-polcy"]
+```
+
+#### Манипуляции внутри нужной машины
+
+Скачиваем последнюю версию vaul-ssh-helper с [этой ссылки](https://releases.hashicorp.com/vault-ssh-helper), 
+указанной в [этом репозитории](https://github.com/hashicorp/vault-ssh-helper).
+
+```sh
+wget https://releases.hashicorp.com/vault-ssh-helper/0.2.1/vault-ssh-helper_0.2.1_linux_amd64.zip
+```
+
+Распаковываем в директорию `/usr/local/bin`.
+```sh
+unzip -q vault-ssh-helper_0.2.1_linux_amd64.zip -d /usr/local/bin
+```
+
+Указываем владельцем root'а и устанавливаем права доступа 0755 (rwxr-xr-x).
+```sh
+sudo chown root:root /usr/local/bin/vault-ssh-helper
+```
+```sh
+sudo chmod 0755 /usr/local/bin/vault-ssh-helper
+```
+
+Создаём файл с конфигурацией vault-ssh-helper в директории `/etc/vault-ssh-helper.d`.
+```sh
+sudo mkdir /etc/vault-ssh-helper.d
+```
+
+```sh
+sudo tee /etc/vault-ssh-helper.d/config.hcl <<EOF
+vault_addr = "VAULT_ADDR"
+tls_skip_verify = false
+ca_path = "CA_CRT_PATH"
+ssh_mount_point = "ssh"
+allowed_roles = "*"
+EOF
+```
+
+Меняем конфигурация для PAM sshd (`/etc/pam.d/sshd`).
+
+```sh
+# на всякий случай бэкапим её
+sudo cp /etc/pam.d/sshd /etc/pam.d/sshd.orig
+```
+
+Комментируем строчку `@include common-auth` и добавляем следующие две: в них для `vault-ssh-helper` 
+указываем конфиг helper'а и файл, куда будут выводиться логи. 
+```
+auth requisite pam_exec.so quiet expose_authtok log=/var/log/vault-ssh.log /usr/local/bin/vault-ssh-helper -config=/etc/vault-ssh-helper.d/config.hcl
+auth optional pam_unix.so not_set_pass use_first_pass nodelay
+```
+
+Меняем конфигурацию sshd (`/etc/ssh/sshd_config`).
+
+```sh
+# на всякий случай бэкапим её
+sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.orig
+```
+
+Добавляем вот такие строчки (предварительно проверьте файл, возможно они уже вставлены).
+```
+KbdInteractiveAuthentication yes
+UsePAM yes
+PasswordAuthentication no
+```
+
+:::warning
+Старые версии Ubuntu используют `ChallengeResponseAuthentication` вместо `KbdInteractiveAuthentication`.
+:::
+
+:::danger
+Так как вы отключаете аутентификацию по паролю, убедитесь, что возможны другие способы 
+доступа к серверу. Например доступ по ssh ключу у root'а. 
+:::
+
+Перезапускаем sshd.
+```sh
+sudo systemctl restart sshd
+```
+
+#### Проверка
+
+Авторизуемся в vault с токеном, полученным выше.
+```sh
+vault login $TOKEN
+```
+
+Генерируем OTP ключ для нужного ip-адреса (юзера не указываем – используется дефолтный).
+```sh
+vault write ssh/creds/otp_key_role ip=$IP_ADDRESS
+
+Key                Value
+---                -----
+lease_id           ssh/creds/otp_key_role/yZaiE4bRiVUVvc6LetQDtDmS
+lease_duration     768h
+lease_renewable    false
+ip                 10.10.10.10
+key                edcf6837-902f-43c6-9e54-c8c26ab80ff3
+key_type           otp
+port               22
+username           username
+```
+
+Подключаемся к серверу с полученным ключём.
+```sh
+ssh username@10.10.10.10
+```
+</details>
+
+___
+
+## Нюансы 
+
+#### #1 Генерировать на одного юзера можно сколько угодно ключей
+
+Имея токен с доступом к нужной роли ssh engine, можно создавать сколько угодно 
+одноразовых ключей для всех пользователй и всех машин, которые указаны в 
+роли. **Поэтому рекомендуется ограничивать управление роли одним пользователем на одной машине**.
+
+#### #2 Сгенерированные ключи останутся рабочими даже после удаления роли
+
+Пока валиден lease созданного ключа, не важно, существует роль, которой его выдали, или нет – ключ останется валидным.
+
+#### #3 Узнать, сколько сейчас неиспользованных ключей для пользователя, невозможно
+
+В принципе узнать, сколько было выдано на роль ключей, можно, посмотрев, сколько у этой роли lease'ов, привязанных к ключам.
+
+```sh
+curl -s -X LIST -H "X-Vault-Token: ${VAULT_TOKEN}" ${VAULT_ADDR}/v1/sys/leases/lookup/ssh/creds/$ROLE_NAME
+```
+
+Но понять, какой lease указывает на валидный ключ, а какой нет, вы не сможете.
+
+#### #4 Инвалидировать выданные ключи можно только инвалидировав привязанный к ним lease
+
+Так как ключи живут даже после удаления роли, единственный способ их убить, это инвалидировать lease.
+
+Можно инвалидировать точечно:
+```sh
+vault lease revoke ssh/creds/otp-role/lease-id
+```
+
+А можно отрубить сразу lease'ы всех ключей роли:
+```sh
+vault lease revoke -prefix ssh/creds/otp-role
+```
+
+#### #5 По дефолту логи использования access-token'ов в HashiCorp Vault не ведутся 
+
+Чтобы узнать какие access-token'ы, когда и для чего использовались, нужно включить запись логов обращения к API.
+```sh
+vault audit enable file file_path=ПУТЬ_ДО_ФАЙЛА_КУДА_БУДУТ_СОХРАНЯТЬСЯ_ЛОГИ
+```
+
+:::note
+Файл с логами будет очень жирным.
+:::
+
+Все token'ы и их accessor'ы в логах будут захешированы. Чтобы как-то найти строчки использования 
+нужного вам token'а, вам придется сначала прогнать его через ту же хеш-функцию, которую использует audit. 
+И дальше по полученному хешу искать в лог-файле.
+```sh
+vault write sys/audit-hash/file input="<TOKEN ACCESSOR>"
+```
+
+## Автоматизация получение OTP
+
+Автоматизировать этот процесс очень легко благодаря Vault API и гибкой настройке прав доступа через ACL. 
+По сути просто создаёте пользователя или сразу token с необходимой policy, и можете использовать нужные вам роли
+для генерации OTP ключей. 
+
+#### Пример с Ansible
+Самый, наверное, простой способ – это создать Ansible Playbook, запрашивающий OTP 
+у vault напрямую модулем `community.hashi_vault.vault_write`.
+
+```yaml
+- name: Play 1
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Get OTP
+      community.hashi_vault.vault_write:
+        auth_method: token
+        url: https://vault.service
+        token: YOUR_TOKEN
+        path: ssh/creds/otp_role
+        data:
+          ip: HOST_IP
+      register: ssh
+    - name: Setting ssh vars
+      ansible.builtin.set_fact:
+        hashi_host_ip: '{{ ssh.data.data.ip }}'
+        hashi_host_username: '{{ ssh.data.data.username }}'
+        hashi_host_port: '{{ ssh.data.data.port }}'
+        hashi_host_key: '{{ ssh.data.data.key }}'
+    - name: DBG
+      ansible.builtin.debug:
+        msg:
+          - 'ip: {{ hashi_host_ip }}'
+          - 'port: {{ hashi_host_port }}'
+          - 'username: {{ hashi_host_username }}'
+          - 'password: {{ hashi_host_key }}'
+```
+
+#### Пример с использованеим API запросов
+
+```sh
+curl --location 'https://vault.service/v1/ssh/creds/otp_role' \
+--header 'X-Vault-Token: TOKEN' \
+--header 'Content-Type: application/json' \
+--data '{
+    "ip": "10.10.10.10"
+}' | jq '.data'
+```
+
+___
+
+Спасибо за чтение! :)

@@ -58,8 +58,8 @@ const config: Config = {
       title: 'Д.И.А.',
       logo: {
         alt: 'Logo',
-        src: 'img/logo.svg',
-        srcDark: 'img/logo-dark.svg',
+        src: 'img/logo.png',
+        srcDark: 'img/logo-dark.png',
       },
       items: [
         {
