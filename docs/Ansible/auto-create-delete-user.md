@@ -1,5 +1,5 @@
 ---
-title: Автоматизация создания и удаления пользователей
+title: 'Пример: автоматизация создания и удаления пользователей linux'
 id: auto-create-delete-user
 ---
 
@@ -26,23 +26,12 @@ id: auto-create-delete-user
       private: false
       default: ""
   tasks:
-    # Проверяем существует ли такой пользователь уже
-    - name: "Check if user is already exists"
-      ansible.builtin.command: "id {{ username }}"
-      register: user_check_result
-      # Команда ничего не меняет, поэтому ставим false
-      changed_when: false
-      # Ставим ignore_errors, потому что в случае если такого юзера нет, 
-      # то мы получим ошибку и без ignore_errors выполнение плейбука остановится
-      ignore_errors: true 
-    - name: "Execute useradd"
-      # Создаём юзера через useradd и проставляем ему заданную группу есть есть
-      ansible.builtin.command: 'useradd -m {{ "-g %s" % group if group else "" }} {{ username }}'
-      # Выполняем только если такого юзера не существует
-      when: user_check_result.rc == 1 
-      register: useradd_result
-      # Проверяем return code результата. (0 значит успешно)
-      changed_when: useradd_result.rc == 0
+    - name: "Add User"
+      # Создаём пользователя встроенным модуделем 
+      ansible.builtin.user:
+        name: '{{ username }}'
+        groups:
+          - '{{ group }}'
     # Создаём папку в которой будет лежать файл с 
     # доверенными публичными ключами для подключения по ssh
     - name: Creating .ssh dir
@@ -105,10 +94,9 @@ id: auto-create-delete-user
       register: user_connections_delete_result
       # Проверяем return code результата. (0 значит успешно)
       changed_when: user_connections_delete_result.rc == 0
-    # Удаляем пользователя вместе с его /home/username директорией
-    - name: "Execute userdel"
-      ansible.builtin.command: "userdel -f -r {{ username }}"
-      register: userdelete_result
-      # Проверяем return code результата. (0 значит успешно)
-      changed_when: userdelete_result.rc == 0
+    # Удаляем пользователя
+    - name: "Delete User"
+      ansible.builtin.user:
+        name: '{{ username }}'
+        state: absent
 ```
